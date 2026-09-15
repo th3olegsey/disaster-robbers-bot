@@ -3,11 +3,7 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 load_dotenv()
-#from Views.Ticket_panel import TicketPanelView
-#from Views.Ticket_Itself import Ticket
 token = os.getenv('token')
-#testing_token = os.getenv('testing_token')
-#log_channel_id = int(os.getenv('log_channel_id'))
 class Bot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
@@ -16,12 +12,9 @@ class Bot(commands.Bot):
         super().__init__(command_prefix='!', intents=intents)
     
     async def setup_hook(self):
-        #self.add_view(TicketPanelView(self))
-        #self.add_view(Ticket(self))
-
-        #await self.load_extension('Commands.ticket')
         await self.load_extension('Commands.XPcalc')
         await self.load_extension('Commands.notifyStarfall')
+        await self.load_extension('Commands.reputationCmds')
         await self.load_extension('BG_Tasks.getDRservers')
 
         guild = os.getenv('guild')
