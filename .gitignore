@@ -1,6 +1,0 @@
-.env
-*.pyc
-data/guild/users/reputation.csv
-data/guild/tickets.csv
-data/game/servers.csv
-.gitignore
