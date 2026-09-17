@@ -6,7 +6,7 @@ from Data.Guild.Users.user import User
 
 class Buttonz(discord.ui.View):
     def __init__(self, id):
-        super().__init__(timeout=5)
+        super().__init__(timeout=600)
         self.id = id
         self.upvoted = []
         self.downvoted = []
