@@ -44,6 +44,12 @@ class NotifyStarfall(commands.Cog):
 
     @app_commands.command(name='notifystarfall', description='Sends notification to the channel')
     async def notify(self, interaction:discord.Interaction, serverid: str):
+        user = User(interaction.user.id)
+        reputation = user.get_reputation()
+        if reputation < -5:
+            return await interaction.response.send_message(f'''You are no longer have access to this command.
+Reason: Reputation is `{reputation}`
+If you wish to appeal uhh just dm me''',ephemeral=True)
         channel = interaction.channel
         servers = pd.read_csv('data/game/servers.csv')
         ids = list(servers['id'])
@@ -52,8 +58,8 @@ class NotifyStarfall(commands.Cog):
                 break
             if n >= len(ids)-1:
                 return await interaction.response.send_message('No server found!',ephemeral=True)
-        embed = discord.Embed(title='Starfall server', description=f'```roblox://placeId=91355853256093&gameInstanceId={id}```')
-        embed.set_author(name=f'Sent by {interaction.user.name}')
+        embed = discord.Embed(title='Starfall server', description=f'```roblox://placeId=91355853256093&gameInstanceId={id}```', color=0xcf0fc0)
+        embed.set_author(name=f'Sent by {interaction.user.name}. Reputation: {reputation}')
         view = Buttonz(interaction.user.id)
         try:
             view.msg = await channel.send(embed=embed, view=view)

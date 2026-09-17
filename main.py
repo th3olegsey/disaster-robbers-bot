@@ -14,7 +14,7 @@ class Bot(commands.Bot):
     async def setup_hook(self):
         await self.load_extension('Commands.XPcalc')
         await self.load_extension('Commands.notifyStarfall')
-        await self.load_extension('Commands.reputationCmds')
+        await self.load_extension('Commands.statCmds')
         await self.load_extension('BG_Tasks.getDRservers')
 
         guild = os.getenv('guild')
