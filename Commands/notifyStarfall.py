@@ -5,9 +5,12 @@ import pandas as pd
 from Data.Guild.Users.user import User
 
 class Buttonz(discord.ui.View):
-    def __init__(self, id):
+    def __init__(self, userid:int, id:str, reputation: int, author: str):
         super().__init__(timeout=600)
+        self.userid = userid
         self.id = id
+        self.reputation = reputation
+        self.author = author
         self.upvoted = []
         self.downvoted = []
 
@@ -16,7 +19,7 @@ class Buttonz(discord.ui.View):
             item.disabled = True
         await self.msg.edit(view=self)
         score = len(self.upvoted) - len(self.downvoted)
-        user = User(self.id)
+        user = User(self.userid)
         rep = user.get_reputation()
         if score > 0:
             user.set_reputation(rep+1)
@@ -25,15 +28,33 @@ class Buttonz(discord.ui.View):
 
     @discord.ui.button(emoji='⬆️', style=discord.ButtonStyle.blurple)
     async def upvote(self, interaction:discord.Interaction, button:discord.Button):
+        if self.userid == interaction.user.id:
+            return await interaction.response.send_message(f'You can\'t upvote yourself!', ephemeral=True)
         if (interaction.user.id not in self.upvoted) and (interaction.user.id not in self.downvoted):
             self.upvoted.append(interaction.user.id)
+            ratio = len(self.upvoted) / (len(self.upvoted) + len(self.downvoted))
+            ratio = round(ratio*100, 1)
+
+            embed = discord.Embed(title='Starfall server', description=f'```roblox://placeId=91355853256093&gameInstanceId={self.id}```\nVote ratio: {ratio}%', color=0xcf0fc0)
+            embed.set_author(name=f'Sent by {self.author}. Reputation: {self.reputation}')
+
+            await self.msg.edit(embed=embed)
             await interaction.response.send_message('Voted!', ephemeral=True)
         else:
             await interaction.response.send_message('Already voted!', ephemeral=True)
     @discord.ui.button(emoji='⬇️', style=discord.ButtonStyle.blurple)
     async def downvote(self, interaction:discord.Interaction, button:discord.Button):
+        if self.userid == interaction.user.id:
+            return await interaction.response.send_message(f'You can\'t downvote yourself!\n-# why?', ephemeral=True)
         if (interaction.user.id not in self.upvoted) and (interaction.user.id not in self.downvoted):
             self.downvoted.append(interaction.user.id)
+            ratio = len(self.upvoted) / (len(self.upvoted) + len(self.downvoted))
+            ratio = round(ratio*100, 1)
+
+            embed = discord.Embed(title='Starfall server', description=f'```roblox://placeId=91355853256093&gameInstanceId={self.id}```\nVote ratio: {ratio}%', color=0xcf0fc0)
+            embed.set_author(name=f'Sent by {self.author}. Reputation: {self.reputation}')
+
+            await self.msg.edit(embed=embed)
             await interaction.response.send_message('Voted!', ephemeral=True)
         else:
             await interaction.response.send_message('Already voted!', ephemeral=True)
@@ -58,9 +79,10 @@ If you wish to appeal uhh just dm me''',ephemeral=True)
                 break
             if n >= len(ids)-1:
                 return await interaction.response.send_message('No server found!',ephemeral=True)
-        embed = discord.Embed(title='Starfall server', description=f'```roblox://placeId=91355853256093&gameInstanceId={id}```', color=0xcf0fc0)
+        embed = discord.Embed(title='Starfall server', description=f'```roblox://placeId=91355853256093&gameInstanceId={id}```\nVote ratio: -%', color=0xcf0fc0)
         embed.set_author(name=f'Sent by {interaction.user.name}. Reputation: {reputation}')
-        view = Buttonz(interaction.user.id)
+        author = interaction.user.name
+        view = Buttonz(interaction.user.id, id, reputation, author)
         try:
             view.msg = await channel.send(embed=embed, view=view)
             await interaction.response.send_message('Notified!', ephemeral=True)
