@@ -12,7 +12,7 @@ class Bot(commands.Bot):
         super().__init__(command_prefix='!', intents=intents)
     
     async def setup_hook(self):
-        await self.load_extension('Commands.XPcalc')
+        await self.load_extension('Commands.calc')
         await self.load_extension('Commands.notifyStarfall')
         await self.load_extension('Commands.statCmds')
         await self.load_extension('BG_Tasks.getDRservers')
