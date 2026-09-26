@@ -16,6 +16,7 @@ class Bot(commands.Bot):
         await self.load_extension('Commands.notifyStarfall')
         await self.load_extension('Commands.statCmds')
         await self.load_extension('BG_Tasks.getDRservers')
+        await self.load_extension('Commands.scary')
 
         guild = os.getenv('guild')
         if guild and guild.isdigit():
