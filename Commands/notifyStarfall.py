@@ -90,10 +90,10 @@ If you wish to appeal uhh just dm me''',ephemeral=True)
         except Exception as e:
             return await interaction.response.send_message(f'oof\n`{e}`')
 
-    @notify.error()
-    async def notify_error(interaction:discord.Interaction, error:app_commands.AppCommandError):
+    @notify.error
+    async def notify_error(self, interaction:discord.Interaction, error:app_commands.AppCommandError):
         if isinstance(error, app_commands.CommandOnCooldown):
-            await interaction.response.send_message(f'Please wait 10 minutes before notifiting again!\n-# {str(error)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(error)}', ephemeral=True)
 
 async def setup(bot:commands.Bot):
     await bot.add_cog(NotifyStarfall(bot))
