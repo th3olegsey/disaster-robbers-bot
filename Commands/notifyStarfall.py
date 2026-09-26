@@ -63,6 +63,7 @@ class NotifyStarfall(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    @app_commands.checks.cooldown(1, 600.0)
     @app_commands.command(name='notifystarfall', description='Sends notification to the channel')
     async def notify(self, interaction:discord.Interaction, serverid: str):
         user = User(interaction.user.id)
@@ -88,6 +89,11 @@ If you wish to appeal uhh just dm me''',ephemeral=True)
             await interaction.response.send_message('Notified!', ephemeral=True)
         except Exception as e:
             return await interaction.response.send_message(f'oof\n`{e}`')
+
+    @notify.error()
+    async def notify_error(interaction:discord.Interaction, error:app_commands.AppCommandError):
+        if isinstance(error, app_commands.CommandOnCooldown):
+            await interaction.response.send_message(f'Please wait 10 minutes before notifiting again!\n-# {str(error)}', ephemeral=True)
 
 async def setup(bot:commands.Bot):
     await bot.add_cog(NotifyStarfall(bot))
