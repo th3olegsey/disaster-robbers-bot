@@ -6,7 +6,7 @@ class Btn(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(emoji=':ghost:')
+    @discord.ui.button(emoji='👻')
     async def btnClick(self, interaction:discord.Interaction, button: discord.Button):
         await interaction.response.send_message('Scary :ghost:')
 
