@@ -8,12 +8,12 @@ class StatCmds(commands.Cog):
         self.bot = bot
 
 
-    @app_commands.command(name='getstat', description='Gets users reputation')
+    @app_commands.command(name='getstat', description='Gets users stat')
     async def getrep(self, interaction:discord.Interaction, user:discord.User, stat:str):
         userid = user.id
         await interaction.response.send_message(f'{user.name}: {get_stat(userid, stat)}')
 
-    @app_commands.command(name='setstat', description='Sets users reputation')
+    @app_commands.command(name='setstat', description='Sets users stat')
     async def setrep(self, interaction:discord.Interaction, user:discord.User, stat:str, value:int):
         if interaction.user.id != 884134020693229639:
             return await interaction.response.send_message('no', ephemeral=True)
