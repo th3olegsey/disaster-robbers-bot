@@ -17,3 +17,6 @@ class Boo(commands.Cog):
     @app_commands.command(name='boo', description='scary')
     async def boo(self, interaction:discord.Interaction):
         await interaction.response.send_message('Scary')
+
+async def setup(bot:commands.Bot):
+    await bot.add_cog(Boo(bot))
