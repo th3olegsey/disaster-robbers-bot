@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 
 def xp_for_level(level):
-    return level * 100 + 1000 if level < 100 else 11000
+    return level * 100 + 1000
 
 class Calc(commands.Cog):
     def __init__(self, bot: commands.Bot):
