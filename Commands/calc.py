@@ -41,7 +41,7 @@ class Calc(commands.Cog):
                         xp += xp_for_level_s1u(level)
                     level -= 1
 
-                embed.add_field(name='Input values:',value=f'level: `{input}`\ngain: `{exp_gain}` XP/hr')
+                embed.add_field(name='Input values:',value=f'level: `{input}`\nformula: `{formula.value}`\ngain: `{exp_gain}` XP/hr')
                 embed.add_field(name='Output values:',value=f'XP: `{xp}`\nEST: `{xp / exp_gain:.2f}` hrs')
 
                 return await interaction.response.send_message(embed=embed)
