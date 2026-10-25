@@ -35,13 +35,13 @@ class Calc(commands.Cog):
                 xp = 0
 
                 while level > 0:
-                    if formula.value == 's1':
+                    if formula == 's1':
                         xp += xp_for_level_s1(level)
-                    elif formula.value == 's1u':
+                    elif formula == 's1u':
                         xp += xp_for_level_s1u(level)
                     level -= 1
 
-                embed.add_field(name='Input values:',value=f'level: `{input}`\nformula: `{formula.value}`\ngain: `{exp_gain}` XP/hr')
+                embed.add_field(name='Input values:',value=f'level: `{input}`\nformula: `{formula}`\ngain: `{exp_gain}` XP/hr')
                 embed.add_field(name='Output values:',value=f'XP: `{xp}`\nEST: `{xp / exp_gain:.2f}` hrs')
 
                 return await interaction.response.send_message(embed=embed)
@@ -52,10 +52,10 @@ class Calc(commands.Cog):
                 return await interaction.response.send_message('Use level range like `50-100`',ephemeral=True)
 
             start, end = map(int, levels)
-            if formula.value == 's1':
+            if formula == 's1':
                 xp_start = sum(xp_for_level_s1(level) for level in range(1, start + 1))
                 xp_end = sum(xp_for_level_s1(level) for level in range(1, end + 1))
-            elif formula.value == 's1u':
+            elif formula == 's1u':
                 xp_start = sum(xp_for_level_s1u(level) for level in range(1, start + 1))
                 xp_end = sum(xp_for_level_s1u(level) for level in range(1, end + 1))
 
@@ -77,9 +77,9 @@ class Calc(commands.Cog):
 
             while input > xp:
                 level += 1
-                if formula.value == 's1':
+                if formula == 's1':
                     xp += xp_for_level_s1(level)
-                elif formula.value == 's1u':
+                elif formula == 's1u':
                     xp += xp_for_level_s1u(level)
 
             embed.add_field(name='Input values:',value=f'XP: `{input}`')
