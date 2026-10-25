@@ -12,15 +12,15 @@ class Bot(commands.Bot):
         super().__init__(command_prefix='!', intents=intents)
     
     async def setup_hook(self):
-        await self.load_extension('Commands.calc')
-        await self.load_extension('Commands.notifyStarfall')
-        await self.load_extension('Commands.statCmds')
-        await self.load_extension('Commands.scary')
-
-        await self.load_extension('BG_Tasks.getDRservers')
-
-        await self.load_extension('Events.logEveryCommand')
-
+        cmds = ['calc','notifyStarfall', 'statCmds', 'scary']
+        bg_tasks = ['getDRservers']
+        events = ['logEveryCommand']
+        for cmd in cmds:
+            await self.load_extension(f'Commands.{cmd}')
+        for bg_task in bg_tasks:
+            await self.load_extension(f'BG_Tasks.{bg_task}')
+        for event in events:
+            await self.load_extension(f'Events.{event}')
 
         guild = os.getenv('guild')
         if guild and guild.isdigit():
