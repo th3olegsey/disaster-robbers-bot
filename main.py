@@ -34,20 +34,4 @@ class Bot(commands.Bot):
 if not token:
     raise SystemExit('Set discord token')
 bot = Bot()
-##############################
-########### Events ###########
-##############################
-@bot.event
-async def on_interaction(interaction: discord.Interaction):
-    log_channel = await bot.fetch_channel(1495456107081105470)
-    if interaction.command != None and interaction.type == discord.InteractionType.application_command:
-        esc = chr(27)
-        if interaction.data.__contains__('options'):
-            params = ''
-            for i in interaction.data['options']:
-                params = f'{params}{i['value']} '
-            await log_channel.send(f'```ansi\n{esc}[1;34m{interaction.user}{esc}[0m: {esc}[1;31m{interaction.data["name"]}{esc}[0m {esc}[1;33m{params}{esc}[0m```')
-        else:
-            await log_channel.send(f'```ansi\n{esc}[1;34m{interaction.user}{esc}[0m: {esc}[1;31m{interaction.data["name"]}{esc}[0m```')
-
 bot.run(token)
