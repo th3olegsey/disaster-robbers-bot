@@ -14,11 +14,14 @@ class GetDRservers(commands.Cog):
     @tasks.loop(minutes=1)
     async def getDrServers(self):
         async with aiohttp.ClientSession() as s:
-            async with s.get(api) as r:
-                if r.ok:
-                    data = await r.json()
-                    servers = data['data']
-                    pd.DataFrame(servers).to_csv('data/game/servers.csv', index=False, header=True)
+            try:
+                async with s.get(api) as r:
+                    if r.ok:
+                        data = await r.json()
+                        servers = data['data']
+                        pd.DataFrame(servers).to_csv('data/game/servers.csv', index=False, header=True)
+            except Exception as e:
+                print(f'Failed to check servers: {e}')
 
 async def setup(bot:commands.Bot):
     await bot.add_cog(GetDRservers(bot))
