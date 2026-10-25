@@ -15,8 +15,12 @@ class Bot(commands.Bot):
         await self.load_extension('Commands.calc')
         await self.load_extension('Commands.notifyStarfall')
         await self.load_extension('Commands.statCmds')
-        await self.load_extension('BG_Tasks.getDRservers')
         await self.load_extension('Commands.scary')
+
+        await self.load_extension('BG_Tasks.getDRservers')
+
+        await self.load_extension('Events.logEveryCommand')
+
 
         guild = os.getenv('guild')
         if guild and guild.isdigit():
