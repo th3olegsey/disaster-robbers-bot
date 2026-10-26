@@ -12,7 +12,7 @@ class Bot(commands.Bot):
         super().__init__(command_prefix='!', intents=intents)
     
     async def setup_hook(self):
-        cmds = ['calc','notifyStarfall', 'statCmds', 'scary']
+        cmds = ['calc','notifyStarfall', 'statCmds', 'scary', 'leaderboard']
         bg_tasks = ['getDRservers']
         events = ['logEveryCommand']
         for cmd in cmds:
