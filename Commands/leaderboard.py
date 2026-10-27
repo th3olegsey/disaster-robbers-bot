@@ -1,5 +1,6 @@
 import discord
 import pandas as pd
+import PIL
 
 from discord import app_commands
 from discord.ext import commands
@@ -13,9 +14,14 @@ def formatCash(cash:int) -> str:
     finalCash = f'{round(cash, 1)}{notations[letter]}'
     return finalCash
 
-def buildLeaderboard(page:int , is_display: bool, sort_by: str):
+def buildLeaderboard(page:int , is_display: bool, sort_by: str) -> str:
     the_leaderboard = ''
-    name_or_display = 'Name' if not is_display else 'Display'
+    the_places = ''
+    the_guys = ''
+    the_levels = ''
+    the_cash = ''
+
+    name_or_display = 'Display' if is_display else 'Name'
     main_columns = f' {'№':^3} | {name_or_display:^20} | Lvl | Cash '
 
     csvNames = pd.read_csv('Data/Guild/Leaderboard/name.csv')
@@ -30,22 +36,31 @@ def buildLeaderboard(page:int , is_display: bool, sort_by: str):
                 'cash': player.cash()
             })
 
-    if sort_by == 'level':
-        members = sorted(members, key=lambda x: x['level'], reverse=True)
-    elif sort_by == 'cash':
-        members = sorted(members, key=lambda x: x['cash'], reverse=True)
+    members = sorted(members, key=lambda x: x['level'] if sort_by == 'level' else x['cash'], reverse=True)
 
     players = ''
     for number, member in enumerate(members):
         pos = number + 1
         if pos >= 25 * (page - 1) and pos < 25 * page:
-            guy = member['name'] if not is_display else member['display']
-            players = f'{players} {(number+1):<3} | {guy:<20} | {member['level']:<3} | {formatCash(member['cash']):<6}\n'
+            guy = member['display'] if is_display else member['name']
+            players = f'{players} {(pos):<3} | {guy:<20} | {member['level']:<3} | {formatCash(member['cash']):<6}\n'
+
+            the_places = f'{the_places}{pos}\n'
+            the_guys = f'{the_guys}{guy}\n'
+            the_levels = f'{the_levels}{member['level']}\n'
+            the_cash = f'{the_cash}{formatCash(member['cash'])}'
+
 
     the_leaderboard = f'{main_columns}\n-----+----------------------+-----+-------\n{players}'
+    return the_leaderboard, the_places, the_guys, the_levels, the_cash
+
+def lbToEmbed(the_leaderboard, page) -> discord.Embed:
     embed = discord.Embed(title='DR leaderboard', description=f'```\n{the_leaderboard}```')
     embed.set_footer(text=f'Page: {page}')
     return embed
+
+def lbToImage(the_leaderboard):
+    ...
 
 class Buttons(discord.ui.View):
     def __init__(self, page:int, is_display:bool, sort_by:str):
@@ -58,7 +73,8 @@ class Buttons(discord.ui.View):
     async def pPage(self, interaction:discord.Interaction, button:discord.Button):
         await interaction.response.defer()
         self.page -= 1
-        embed = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        embed = lbToEmbed(the_leaderboard, self.page)
 
         pBtn = [x for x in self.children if x.custom_id == 'p'][0]
         pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
@@ -71,7 +87,8 @@ class Buttons(discord.ui.View):
     async def nPage(self, interaction:discord.Interaction, button:discord.Button):
         await interaction.response.defer()
         self.page += 1
-        embed = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        embed = lbToEmbed(the_leaderboard, self.page)
 
         pBtn = [x for x in self.children if x.custom_id == 'p'][0]
         pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
@@ -84,13 +101,16 @@ class Buttons(discord.ui.View):
     async def changeNameDisplay(self, interaction: discord.Interaction, button:discord.ui.Button):
         await interaction.response.defer()
         self.is_display = not(self.is_display)
-        embed = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        embed = lbToEmbed(the_leaderboard, self.page)
+
         await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
     @discord.ui.button(label='Previous page x5', emoji='◀️', style=discord.ButtonStyle.success, custom_id='p5', disabled=True, row=1)
     async def pPage5(self, interaction: discord.Interaction, button:discord.ui.Button):
         await interaction.response.defer()
         self.page -= 5
-        embed = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        embed = lbToEmbed(the_leaderboard, self.page)
 
         pBtn = [x for x in self.children if x.custom_id == 'p'][0]
         pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
@@ -103,7 +123,8 @@ class Buttons(discord.ui.View):
     async def nPage5(self, interaction: discord.Interaction, button:discord.ui.Button):
         await interaction.response.defer()
         self.page += 5
-        embed = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        embed = lbToEmbed(the_leaderboard, self.page)
 
         pBtn = [x for x in self.children if x.custom_id == 'p'][0]
         pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
@@ -112,13 +133,17 @@ class Buttons(discord.ui.View):
         pBtn5.disabled = True if self.page <= 5 else False
 
         await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
-    @discord.ui.button(label='Sort by $$/Lvl', emoji='🔁', style=discord.ButtonStyle.blurple, custom_id='filter', row=1)
-    async def applyFilter(self, interaction: discord.Interaction, button:discord.ui.Button):
+    @discord.ui.button(label='Sort by $$/Lvl', emoji='🔁', style=discord.ButtonStyle.blurple, custom_id='sort', row=1)
+    async def sortLB(self, interaction: discord.Interaction, button:discord.ui.Button):
         await interaction.response.defer()
         self.sort_by = 'cash' if self.sort_by == 'level' else 'level'
-        embed = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        embed = lbToEmbed(the_leaderboard, self.page)
         await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
-    
+    @discord.ui.button(label='Show as text', emoji='🔤', style=discord.ButtonStyle.gray, custom_id='text', row=2)
+    async def lbAsText(self, intecation:discord.Interaction, button:discord.Button):
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        await intecation.response.send_message(f'```\n{the_leaderboard}```', ephemeral=True)
 
 class Leaderboard(commands.Cog):
     def __init__(self,bot: commands.Bot):
@@ -132,18 +157,11 @@ class Leaderboard(commands.Cog):
             page = 1
         if sort_by is None:
             sort_by = app_commands.Choice(name='', value='level')
-        embed = buildLeaderboard(page, True, sort_by.value)
+        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(page, True, sort_by.value)
+        print(the_places, the_guys, the_levels, the_cash)
+        embed = discord.Embed(title='DR leaderboard', description=f'```\n{the_leaderboard}```')
+        embed.set_footer(text=f'Page: {page}')
         await interaction.response.send_message(embed=embed, view=Buttons(page, True, sort_by.value))
-        
 
 async def setup(bot:commands.Bot):
     await bot.add_cog(Leaderboard(bot))
-
-
-'''
-№ | Name | level | cash
---+------+-------+-----
-1 | wasd | 99999 | 999b
-.......................
-25| wasd | 99999 | 999b
-'''
