@@ -8,6 +8,7 @@ from io import BytesIO
 from Data.Guild.Leaderboard.Player import Player
 linethickness = 3
 font = ImageFont.truetype("consola.ttf", size=15)
+img_size = {'x':370 ,'y':460}
 notations = ['', 'k', 'm', 'b']
 def formatCash(cash:int) -> str:
     letter = 0
@@ -64,23 +65,34 @@ def lbToEmbed(the_leaderboard, page) -> discord.Embed:
 
 def lbToImage(the_places:str, is_display:bool, the_guys:str, the_levels:str, the_cash:str) -> discord.File:
     name_or_display = 'Display' if is_display else 'Name'
-    img = Image.new('RGB', (370,440), 0xFFFFFF)
+    img = Image.new('RGB', (img_size['x'],img_size['y']), (62, 63, 80))
 
     idraw = ImageDraw.Draw(img)
-    idraw.text((35,20), '№', font=font, fill=0x000000, align='m')
-    idraw.text((125,20), name_or_display, font=font, fill=0x000000, align='m')
-    idraw.text((242,20), 'Level', font=font, fill=0x000000, align='m')
-    idraw.text((305,20), 'Cash', font=font, fill=0x000000, align='m')
 
-    idraw.rectangle((15, 40, 355, 40+linethickness), fill=0x000000)
-    idraw.rectangle((60, 20, 60+linethickness, 430), fill=0x000000)
-    idraw.rectangle((235, 20, 235+linethickness, 430), fill=0x000000)
-    idraw.rectangle((285, 20, 285+linethickness, 430), fill=0x000000)
+    first_line = {'x':15, 'y':30}
+    second_line = {'x':60, 'y':10}
+    third_line = {'x':235, 'y':10}
+    fourth_line = {'x':285, 'y':10}
 
-    idraw.text((25,50), the_places, font=font, fill=0x000000)
-    idraw.text((70,50), the_guys, font=font, fill=0x000000)
-    idraw.text((245,50), the_levels, font=font, fill=0x000000)
-    idraw.text((295,50), the_cash, font=font, fill=0x000000)
+    idraw.rectangle((first_line['x'], first_line['y'],  img_size['x']-10,              30+linethickness),fill=0xFFFFFF) # ---
+    idraw.rectangle((second_line['x'],second_line['y'], second_line['x']+linethickness,img_size['y']-10),fill=0xFFFFFF) # | 1
+    idraw.rectangle((third_line['x'], third_line['y'],  third_line['x']+linethickness, img_size['y']-10),fill=0xFFFFFF) # | 2
+    idraw.rectangle((fourth_line['x'],fourth_line['y'], fourth_line['x']+linethickness,img_size['y']-10),fill=0xFFFFFF) # | 3
+
+    placeTextPos = (first_line['x'] + second_line['x'])//2
+    nodTextPos =   (second_line['x'] + third_line['x'] + linethickness*2)//2
+    levelTextPos = (third_line['x'] + fourth_line['x'] + linethickness*2)//2
+    cashTextPos =  (fourth_line['x'] + img_size['x']-10 + linethickness*2)//2
+
+    idraw.text((placeTextPos,10),'№',            font=font, anchor='mt')
+    idraw.text((nodTextPos,10),  name_or_display,font=font, anchor='mt')
+    idraw.text((levelTextPos,10),'Lvl',          font=font, anchor='mt')
+    idraw.text((cashTextPos,10), 'Cash',         font=font, anchor='mt')
+
+    idraw.text((25,40), the_places,font=font, fill=(201, 92, 94), stroke_width=.5)
+    idraw.text((70,40), the_guys,  font=font, fill=(68, 125, 198),stroke_width=.5)
+    idraw.text((245,40),the_levels,font=font, fill=(172, 113, 23),stroke_width=.5)
+    idraw.text((295,40),the_cash,  font=font, fill=(72, 146, 101),stroke_width=.5)
 
     img_bin = BytesIO()
     img.save(img_bin, 'png')
