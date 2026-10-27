@@ -7,7 +7,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 load_dotenv()
 token = os.getenv('token')
-cmds = ['calc','notifyStarfall', 'statCmds', 'scary', 'leaderboard']
+cmds = ['calc','notifyStarfall', 'statCmds', 'scary', 'leaderboard', 'lbActions']
 bg_tasks = ['getDRservers']
 events = ['logEveryCommand']
 class Bot(commands.Bot):
