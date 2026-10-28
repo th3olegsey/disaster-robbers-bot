@@ -24,7 +24,7 @@ def setStat(uid, stat, value):
 
 class Player():
     def __init__(self, uid:int):
-        self.uid = uid
+        self.uid = int(uid)
 
     def level(self) -> int:
         return getStat(self.uid, 'level')
@@ -77,13 +77,18 @@ class Player():
     def edit(self, rank:int, cash:int):
         level_csv = pd.read_csv(f'{path}level.csv')
         cash_csv = pd.read_csv(f'{path}cash.csv')
-
-        lTarget = level_csv.index[level_csv['uid'] == self.uid].to_list()
-        cTarget = cash_csv.index[cash_csv['uid'] == self.uid].to_list()
-
-        if not (len(lTarget) and len(cTarget)):
-            raise Exception
-
+        k = cTarget = lTarget = 0
+        for i in level_csv['uid']:
+            if i == self.uid:
+                lTarget = k
+                break
+            k += 1
+        k = 0
+        for i in cash_csv['uid']:
+            if i == int(self.uid):
+                cTarget = k
+                break
+            k += 1
         ld = [{
             'uid': self.uid,
             'value': rank
@@ -92,9 +97,8 @@ class Player():
             'uid': self.uid,
             'value': cash
         }]
-
-        level_csv.iloc[lTarget] = ld
-        cash_csv.iloc[cTarget] = cd
+        level_csv.iloc[lTarget] = ld[0]
+        cash_csv.iloc[cTarget] = cd[0]
 
         level_csv.to_csv(f'{path}level.csv', index=False, header=True)
         cash_csv.to_csv(f'{path}cash.csv', index=False, header=True)

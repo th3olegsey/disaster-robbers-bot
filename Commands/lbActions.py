@@ -14,7 +14,7 @@ class LbActionsDropdown(discord.ui.Select):
             ]
         )
 
-class Lb_request_modal(discord.ui.Modal):
+class LbActionModal(discord.ui.Modal):
     def __init__(self):
         super().__init__(title='Submit a leaderboard request...')
     actionType = discord.ui.Label(text='Action', component=LbActionsDropdown())
@@ -23,12 +23,19 @@ class Lb_request_modal(discord.ui.Modal):
     cash = discord.ui.TextInput(label='Cash', placeholder='402350', required=False)
     #proof = ...
     async def on_submit(self, interaction:discord.Interaction):
+        if self.rank.value:
+            if not self.rank.value.isdecimal():
+                return await interaction.response.send_message('Rank should be an interger!', ephemeral=True)
+        if self.cash.value:
+            if not self.cash.value.isdecimal():
+                return await interaction.response.send_message('Cash should be an interger!', ephemeral=True)
+
         player = Player(self.name.value)
         if self.actionType.component.values[0] == 'a':
-            player.add(self.rank, self.cash)
+            player.add(int(self.rank.value), int(self.cash.value))
             await interaction.response.send_message('added', ephemeral=True)
         elif self.actionType.component.values[0] == 'e':
-            player.edit(self.rank, self.cash)
+            player.edit(int(self.rank.value), int(self.cash.value))
             await interaction.response.send_message('edited', ephemeral=True)
         elif self.actionType.component.values[0] == 'd':
             player.delete()
@@ -40,7 +47,7 @@ class LbActions(commands.Cog):
 
     @app_commands.command(name='lbactions')
     async def lbActions(self, interaction:discord.Interaction):
-        await interaction.response.send_modal(Lb_request_modal())
+        await interaction.response.send_modal(LbActionModal())
 
 async def setup(bot:commands.Bot):
     await bot.add_cog(LbActions(bot))
