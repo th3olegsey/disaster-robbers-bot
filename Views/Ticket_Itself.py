@@ -8,7 +8,8 @@ log_channel_id = int(os.getenv('log_channel_id'))
 ticket_types={
     0: "Question",
     1: "Bug report",
-    2: "Exploit report"
+    2: "Exploit report",
+    3: "Leaderboard submition"
 }
 class CommentModal(discord.ui.Modal, title='Add comment'):
     def __init__(self, bot:commands.Bot, accepted:bool):
@@ -48,7 +49,7 @@ class CommentModal(discord.ui.Modal, title='Add comment'):
         if not self.comment.value:
             self.comment.value = '[ None ]'
 
-        log_embed.description = f'```{ticket['res1']}```\n```{ticket['res2']}```\ncomment:\n```{self.comment.value}```'
+        log_embed.description = f'```{ticket['value']}```\ncomment:\n```{self.comment.value}```'
         log_embed.color = 0x0000FF
         log_embed.set_author(name=interaction.user.name)
 

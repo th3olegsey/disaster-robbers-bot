@@ -1,5 +1,5 @@
 import discord
-import roblox
+from roblox import Client
 from discord import app_commands
 from discord.ext import commands
 from Data.Guild.Leaderboard.Player import Player
@@ -21,7 +21,6 @@ class LbActionModal(discord.ui.Modal):
     name = discord.ui.TextInput(label='User', placeholder='Toiebe')
     rank = discord.ui.TextInput(label='Rank', placeholder='100', required=False)
     cash = discord.ui.TextInput(label='Cash', placeholder='402350', required=False)
-    #proof = ...
     async def on_submit(self, interaction:discord.Interaction):
         if self.rank.value:
             if not self.rank.value.isdecimal():
@@ -29,17 +28,24 @@ class LbActionModal(discord.ui.Modal):
         if self.cash.value:
             if not self.cash.value.isdecimal():
                 return await interaction.response.send_message('Cash should be an interger!', ephemeral=True)
-
-        player = Player(self.name.value)
-        if self.actionType.component.values[0] == 'a':
-            player.add(int(self.rank.value), int(self.cash.value))
-            await interaction.response.send_message('added', ephemeral=True)
-        elif self.actionType.component.values[0] == 'e':
-            player.edit(int(self.rank.value), int(self.cash.value))
-            await interaction.response.send_message('edited', ephemeral=True)
-        elif self.actionType.component.values[0] == 'd':
-            player.delete()
-            await interaction.response.send_message('deleted', ephemeral=True)
+            
+        uid = 0
+        client = Client()
+        async for user in client.user_search(self.name.value,max_items=1):
+            uid = user.id
+        if uid:
+            player = Player(int(uid))
+            if self.actionType.component.values[0] == 'a':
+                player.add(int(self.rank.value), int(self.cash.value))
+                await interaction.response.send_message('Added!', ephemeral=True)
+            elif self.actionType.component.values[0] == 'e':
+                player.edit(int(self.rank.value), int(self.cash.value))
+                await interaction.response.send_message('Edited!', ephemeral=True)
+            elif self.actionType.component.values[0] == 'd':
+                player.delete()
+                await interaction.response.send_message('Deleted!', ephemeral=True)
+        else:
+            return await interaction.response.send_message('User not found')
 
 class LbActions(commands.Cog):
     def __init__(self, bot:commands.bot):
@@ -47,6 +53,8 @@ class LbActions(commands.Cog):
 
     @app_commands.command(name='lbactions')
     async def lbActions(self, interaction:discord.Interaction):
+        if interaction.user.id != 884134020693229639:
+            return await interaction.response.send_message('You are not th3_olegsey', ephemeral=True)
         await interaction.response.send_modal(LbActionModal())
 
 async def setup(bot:commands.Bot):

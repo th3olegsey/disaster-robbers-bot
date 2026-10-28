@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 token = os.getenv('token')
 cmds = ['calc','notifyStarfall', 'statCmds', 'scary', 'leaderboard', 'lbActions']
-bg_tasks = ['getDRservers']
+bg_tasks = ['getDRservers', 'updateLeaderboardNames']
 events = ['logEveryCommand']
 class Bot(commands.Bot):
     def __init__(self):
@@ -46,19 +46,24 @@ bot = Bot()
 async def reloadCommands(interaction:discord.Interaction):
     for cmd in cmds:
         await bot.unload_extension(f'Commands.{cmd}')
+        try:
+            await bot.load_extension(f'Commands.{cmd}')
+        except Exception as e:
+            print(f'Failed to load extension {cmd}: {e}')
+
     for bg_task in bg_tasks:
         await bot.unload_extension(f'BG_Tasks.{bg_task}')
+        try:
+            await bot.load_extension(f'BG_Tasks.{bg_task}')
+        except Exception as e:
+            print(f'Failed to load extension {bg_task}: {e}')
+
     for event in events:
         await bot.unload_extension(f'Events.{event}')
-
-    try:
-        for cmd in cmds:
-            await bot.load_extension(f'Commands.{cmd}')
-        for bg_task in bg_tasks:
-            await bot.load_extension(f'BG_Tasks.{bg_task}')
-        for event in events:
+        try:
             await bot.load_extension(f'Events.{event}')
-        await interaction.response.send_message('reloaded', ephemeral=True)
-    except Exception as e:
-        await interaction.response.send_message(f'Failed: {e}')
+        except Exception as e:
+            print(f'Failed to load extension {event}: {e}')
+
+    await interaction.response.send_message('reloaded', ephemeral=True)
 bot.run(token)
