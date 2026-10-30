@@ -21,7 +21,7 @@ class Calc(commands.Cog):
     async def calculate(self, interaction: discord.Interaction, what_to_calculate: app_commands.Choice[str], input: str, formula: app_commands.Choice[str] | None, exp_gain: int | None):
 
         if exp_gain is None:
-            exp_gain = 13000
+            exp_gain = 15000
         if formula is None:
             formula = app_commands.Choice(name='', value='s1')
 
