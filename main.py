@@ -1,21 +1,22 @@
 import discord
-import os
-import asyncio
 
 from discord.ext import commands
 from discord import app_commands
+from os import getenv
 from dotenv import load_dotenv
 load_dotenv()
-token = os.getenv('token')
+token = getenv('token')
 cmds = ['calc','notifyStarfall', 'statCmds', 'scary', 'leaderboard', 'lbActions']
 bg_tasks = ['getDRservers', 'updateLeaderboardNames']
 events = ['logEveryCommand']
+
 class Bot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.guilds = True
         intents.members = True
         super().__init__(command_prefix='!', intents=intents)
+        self.cmds = []
     
     async def setup_hook(self):
         for cmd in cmds:
@@ -25,15 +26,19 @@ class Bot(commands.Bot):
         for event in events:
             await self.load_extension(f'Events.{event}')
 
-        guild = os.getenv('guild')
+        guild = getenv('guild')
         if guild and guild.isdigit():
             guild = discord.Object(int(guild))
             self.tree.copy_global_to(guild=guild)
             self.tree.clear_commands(guild=None)
-            await self.tree.sync(guild=guild)
+            bot_cmds = await self.tree.sync(guild=guild)
+            for command in bot_cmds:
+                self.cmds.append(command)
             print('cmds have been synced to specific guild')
         else:
-            await self.tree.sync()
+            bot_cmds = await self.tree.sync(guild=guild)
+            for command in bot_cmds:
+                self.cmds.append(command)
             print('cmds have been synced globally')
 
     async def on_ready(self):
@@ -41,8 +46,7 @@ class Bot(commands.Bot):
 if not token:
     raise SystemExit('Set discord token')
 bot = Bot()
-
-@bot.tree.command(name='reload_commands')
+@bot.tree.command(name='reload_commands', description='Core command. Updates all commands')
 async def reloadCommands(interaction:discord.Interaction):
     for cmd in cmds:
         await bot.unload_extension(f'Commands.{cmd}')
@@ -66,4 +70,16 @@ async def reloadCommands(interaction:discord.Interaction):
             print(f'Failed to load extension {event}: {e}')
 
     await interaction.response.send_message('reloaded', ephemeral=True)
+
+@bot.tree.command(name='about', description='Core command. Shows information about this bot')
+async def about(interaction:discord.Interaction):
+    app_info = await bot.application_info()
+    developer = app_info.owner.mention
+    embed = discord.Embed(title=f'About {app_info.name} ({app_info.id})', description=f'This bot was made by {developer}')
+    supportedCommands = ''
+    for command in bot.cmds:
+        supportedCommands = f'{supportedCommands}{command.mention}: {command.description}\n'
+    embed.add_field(name='Supported commands', value=supportedCommands)
+    await interaction.response.send_message(embed=embed)
+
 bot.run(token)

@@ -51,7 +51,7 @@ class LbActions(commands.Cog):
     def __init__(self, bot:commands.bot):
         self.bot = bot
 
-    @app_commands.command(name='lbactions')
+    @app_commands.command(name='lbactions', description='Make changes to the leaderboard')
     async def lbActions(self, interaction:discord.Interaction):
         if interaction.user.id != 884134020693229639:
             return await interaction.response.send_message('You are not th3_olegsey', ephemeral=True)

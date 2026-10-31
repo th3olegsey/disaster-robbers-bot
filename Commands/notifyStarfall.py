@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import pandas as pd
-from Data.Guild.Users.user import User
+from Data.Guild.Users.User import User
 
 class Buttonz(discord.ui.View):
     def __init__(self, userid:int, id:str, reputation: int, author: str):

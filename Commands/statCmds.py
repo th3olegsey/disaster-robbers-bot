@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from Data.Guild.Users.user import get_stat, set_stat
+from Data.Guild.Users.User import get_stat, set_stat
 
 class StatCmds(commands.Cog):
     def __init__(self, bot:commands.Bot):

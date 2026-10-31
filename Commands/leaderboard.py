@@ -1,5 +1,4 @@
 import discord
-from discord.utils import MISSING
 import pandas as pd
 
 from PIL import Image, ImageDraw, ImageFont
