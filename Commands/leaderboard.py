@@ -1,4 +1,5 @@
 import discord
+from discord.utils import MISSING
 import pandas as pd
 
 from PIL import Image, ImageDraw, ImageFont
@@ -6,10 +7,12 @@ from discord import app_commands
 from discord.ext import commands
 from io import BytesIO
 from Data.Guild.Leaderboard.Player import Player
+
 linethickness = 3
 font = ImageFont.truetype("consola.ttf", size=15)
 img_size = {'x':370 ,'y':460}
 notations = ['', 'k', 'm', 'b']
+
 def formatCash(cash:int) -> str:
     letter = 0
     while(cash > 1000):
@@ -100,6 +103,64 @@ def lbToImage(the_places:str, is_display:bool, the_guys:str, the_levels:str, the
     file = discord.File(img_bin,'leaderboard.png')
     return file
 
+class NameFilterSelect(discord.ui.Select):
+    def __init__(self):
+        super().__init__(options=[
+            discord.SelectOption(label='Display names', value=True),
+            discord.SelectOption(label='Names', value=False)],
+            required=False,
+
+        )
+
+class SortBySelect(discord.ui.Select):
+    def __init__(self):
+        super().__init__(options=[
+            discord.SelectOption(label='Level', emoji='⭐', value='level',),
+            discord.SelectOption(label='Cash', emoji='💲', value='cash')],
+            required=False
+        )
+
+class SelectPageModal(discord.ui.Modal):
+    def __init__(self, is_display:bool, sort_by:str):
+        super().__init__(title='Select page')
+        self.is_display = is_display
+        self.sort_by = sort_by
+    page = discord.ui.TextInput(label='Enter page', placeholder='2', required=False)
+    async def on_submit(self, interaction:discord.Interaction):
+        await interaction.response.defer()
+        if not self.page.value.isdigit():
+            return await interaction.followup.send('Page value must be an integer!', ephemeral=True)
+        page = int(self.page.value) if self.page.value else 1
+        _, the_places, the_guys, the_levels, the_cash = buildLeaderboard(page, self.is_display, self.sort_by)
+        file = lbToImage(the_places, self.is_display, the_guys, the_levels, the_cash)
+        embed = discord.Embed(title='DR leaderboard')
+        embed.set_image(url='attachment://leaderboard.png')
+        embed.set_footer(text=f'Page: {page}')
+
+        #pBtn = [x for x in self.children if x.custom_id == 'p'][0]
+        #pBtn.disabled = True if self.page <= 1 else False 
+
+        await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=Buttons(page, self.is_display, self.sort_by))
+
+class ApplyFilterModal(discord.ui.Modal):
+    def __init__(self, page:int):
+        super().__init__(title='Apply filter')
+        self.page = page
+    sort_by = discord.ui.Label(text='Sort by ...', component=SortBySelect())
+    is_display = discord.ui.Label(text='Show ...', component=NameFilterSelect())
+    async def on_submit(self, interaction:discord.Interaction):
+        await interaction.response.defer()
+
+        sort_by_selected = self.sort_by.component.values[0] if len(self.sort_by.component.values) else 'level'
+        is_display_selected = self.is_display.component.values[0] == 'True' if len(self.is_display.component.values) else True
+
+        _, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, is_display_selected, sort_by_selected)
+        file = lbToImage(the_places, is_display_selected, the_guys, the_levels, the_cash)
+        embed = discord.Embed(title='DR leaderboard')
+        embed.set_image(url='attachment://leaderboard.png')
+        embed.set_footer(text=f'Page: {self.page}')
+        await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=Buttons(self.page, is_display_selected, sort_by_selected))
+
 class Buttons(discord.ui.View):
     def __init__(self, page:int, is_display:bool, sort_by:str):
         super().__init__(timeout=300)
@@ -107,99 +168,48 @@ class Buttons(discord.ui.View):
         self.is_display = is_display
         self.page = page
 
-    @discord.ui.button(label='Previous page', emoji='◀️', style=discord.ButtonStyle.success, custom_id='p', disabled=True)
+        self.pPage.disabled = self.page <= 1
+
+    @discord.ui.button(emoji='◀️', style=discord.ButtonStyle.success, custom_id='p')
     async def pPage(self, interaction:discord.Interaction, button:discord.Button):
         await interaction.response.defer()
         self.page -= 1
 
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        _, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
         file = lbToImage(the_places, self.is_display, the_guys, the_levels, the_cash)
         embed = discord.Embed(title='DR leaderboard')
         embed.set_image(url='attachment://leaderboard.png')
         embed.set_footer(text=f'Page: {self.page}')
 
         pBtn = [x for x in self.children if x.custom_id == 'p'][0]
-        pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
-
         pBtn.disabled = True if self.page <= 1 else False 
-        pBtn5.disabled = True if self.page <= 5 else False
 
         await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=self)
-    @discord.ui.button(label='Next page', emoji='▶️', style=discord.ButtonStyle.success, custom_id='n', disabled=False)
+    @discord.ui.button(label='Select page', style=discord.ButtonStyle.success, custom_id='sp')
+    async def selectPage(self, interaction:discord.Interaction, button:discord.Button):
+        await interaction.response.send_modal(SelectPageModal(self.is_display, self.sort_by))
+
+    @discord.ui.button(emoji='▶️', style=discord.ButtonStyle.success, custom_id='n', disabled=False)
     async def nPage(self, interaction:discord.Interaction, button:discord.Button):
         await interaction.response.defer()
         self.page += 1
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        _, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
         file = lbToImage(the_places, self.is_display, the_guys, the_levels, the_cash)
         embed = discord.Embed(title='DR leaderboard')
         embed.set_image(url='attachment://leaderboard.png')
         embed.set_footer(text=f'Page: {self.page}')
 
         pBtn = [x for x in self.children if x.custom_id == 'p'][0]
-        pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
-
         pBtn.disabled = True if self.page <= 1 else False 
-        pBtn5.disabled = True if self.page <= 5 else False
 
         await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=self)
-    @discord.ui.button(label='Change name display', emoji='🔁', style=discord.ButtonStyle.blurple, custom_id='change')
-    async def changeNameDisplay(self, interaction: discord.Interaction, button:discord.ui.Button):
-        await interaction.response.defer()
-        self.is_display = not(self.is_display)
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
-        file = lbToImage(the_places, self.is_display, the_guys, the_levels, the_cash)
-        embed = discord.Embed(title='DR leaderboard')
-        embed.set_image(url='attachment://leaderboard.png')
-        embed.set_footer(text=f'Page: {self.page}')
+    @discord.ui.button(label='Apply filter', emoji='<:filter:1566054560806477825>', style=discord.ButtonStyle.blurple, custom_id='filter', row=2)
+    async def applyFilter(self, interaction:discord.Interaction, button:discord.Button):
+        await interaction.response.send_modal(ApplyFilterModal(self.page))
 
-        await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=self)
-    @discord.ui.button(label='Previous page x5', emoji='◀️', style=discord.ButtonStyle.success, custom_id='p5', disabled=True, row=1)
-    async def pPage5(self, interaction: discord.Interaction, button:discord.ui.Button):
-        await interaction.response.defer()
-        self.page -= 5
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
-        file = lbToImage(the_places, self.is_display, the_guys, the_levels, the_cash)
-        embed = discord.Embed(title='DR leaderboard')
-        embed.set_image(url='attachment://leaderboard.png')
-        embed.set_footer(text=f'Page: {self.page}')
-
-        pBtn = [x for x in self.children if x.custom_id == 'p'][0]
-        pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
-
-        pBtn.disabled = True if self.page <= 1 else False 
-        pBtn5.disabled = True if self.page <= 5 else False
-
-        await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=self)
-    @discord.ui.button(label='Next page x5', emoji='▶️', style=discord.ButtonStyle.success, custom_id='n5', row=1)
-    async def nPage5(self, interaction: discord.Interaction, button:discord.ui.Button):
-        await interaction.response.defer()
-        self.page += 5
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
-        file = lbToImage(the_places, self.is_display, the_guys, the_levels, the_cash)
-        embed = discord.Embed(title='DR leaderboard')
-        embed.set_image(url='attachment://leaderboard.png')
-        embed.set_footer(text=f'Page: {self.page}')
-
-        pBtn = [x for x in self.children if x.custom_id == 'p'][0]
-        pBtn5 = [x for x in self.children if x.custom_id == 'p5'][0]
-
-        pBtn.disabled = True if self.page <= 1 else False 
-        pBtn5.disabled = True if self.page <= 5 else False
-
-        await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=self)
-    @discord.ui.button(label='Sort by $$/Lvl', emoji='🔁', style=discord.ButtonStyle.blurple, custom_id='sort', row=1)
-    async def sortLB(self, interaction: discord.Interaction, button:discord.ui.Button):
-        await interaction.response.defer()
-        self.sort_by = 'cash' if self.sort_by == 'level' else 'level'
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
-        file = lbToImage(the_places, self.is_display, the_guys, the_levels, the_cash)
-        embed = discord.Embed(title='DR leaderboard')
-        embed.set_image(url='attachment://leaderboard.png')
-        embed.set_footer(text=f'Page: {self.page}')
-        await interaction.followup.edit_message(interaction.message.id, attachments=[file], embed=embed, view=self)
     @discord.ui.button(label='Show as text', emoji='🔤', style=discord.ButtonStyle.gray, custom_id='text', row=2)
     async def lbAsText(self, intecation:discord.Interaction, button:discord.Button):
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(self.page, self.is_display, self.sort_by)
+        the_leaderboard, _, _, _, _ = buildLeaderboard(self.page, self.is_display, self.sort_by)
         await intecation.response.send_message(f'```\n{the_leaderboard}```', ephemeral=True)
 
 class Leaderboard(commands.Cog):
@@ -215,7 +225,7 @@ class Leaderboard(commands.Cog):
         if sort_by is None:
             sort_by = app_commands.Choice(name='', value='level')
 
-        the_leaderboard, the_places, the_guys, the_levels, the_cash = buildLeaderboard(page, True, sort_by.value)
+        _, the_places, the_guys, the_levels, the_cash = buildLeaderboard(page, True, sort_by.value)
         file = lbToImage(the_places,True,the_guys,the_levels,the_cash)
         embed = discord.Embed(title='DR leaderboard')
         embed.set_image(url='attachment://leaderboard.png')
