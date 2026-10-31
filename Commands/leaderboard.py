@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 from discord import app_commands
 from discord.ext import commands
 from io import BytesIO
-from Data.Guild.Leaderboard.Player import Player
+from Data.Guild.Players.Player import Player
 
 linethickness = 3
 font = ImageFont.truetype("consola.ttf", size=15)

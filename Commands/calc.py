@@ -108,4 +108,4 @@ class Calc(commands.Cog):
             all_decorations = all_skins+all_colors+all_rims+all_tires+underglow+all_boosts+all_plates+all_spoilers+all_hats+all_engines+all_suspensions #1495050 or 1.4m
 
 async def setup(bot:commands.Bot):
-    await bot.add_cog(Calc(bot))
+    await bot.add_cog(Calc(bot), guilds=bot.guilds)

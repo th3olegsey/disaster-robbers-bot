@@ -8,7 +8,7 @@ class LogEveryCommand (commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self ,interaction: discord.Interaction):
-        log_channel = await self.bot.fetch_channel(1495456107081105470)
+        log_channel = self.bot.get_channel(1495456107081105470)
         if interaction.command != None and interaction.type == discord.InteractionType.application_command:
             esc = chr(27)
             if interaction.data.__contains__('options'):

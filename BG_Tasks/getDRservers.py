@@ -19,7 +19,7 @@ class GetDRservers(commands.Cog):
                     if r.ok:
                         data = await r.json()
                         servers = data['data']
-                        pd.DataFrame(servers).to_csv('data/game/servers.csv', index=False, header=True)
+                        pd.DataFrame(servers).to_csv('Data/Game/servers.csv', index=False, header=True)
             except Exception as e:
                 print(f'Failed to check servers: {e}')
 

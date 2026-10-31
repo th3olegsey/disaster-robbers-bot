@@ -1,5 +1,5 @@
 import pandas as pd
-path = 'Data/Guild/Leaderboard/'
+path = 'Data/Guild/Players/'
 def getStat(uid, stat):
     csv = pd.read_csv(f'{path}{stat}.csv')
     target = csv.index[csv['uid'] == uid].to_list()

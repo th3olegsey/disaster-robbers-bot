@@ -33,3 +33,13 @@ class User():
 
     def set_reputation(self, value:int) -> None:
         set_stat(self.id, 'reputation', value)
+
+    def get_lbActionsPerm(self) -> bool:
+        stat = int(get_stat(self.id, 'lbActionsPerm'))
+        has_permisson = stat > 0
+        return has_permisson
+
+    def set_lbActionsPerm(self, value:bool):
+        has_permission = 1 if value else 0
+        set_stat(self.id, 'lbActionsPerm', has_permission)
+        

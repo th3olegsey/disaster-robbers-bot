@@ -2,7 +2,8 @@ import discord
 from roblox import Client
 from discord import app_commands
 from discord.ext import commands
-from Data.Guild.Leaderboard.Player import Player
+from Data.Guild.Players.Player import Player
+from Data.Guild.Users.User import User
 
 class LbActionsDropdown(discord.ui.Select):
     def __init__(self):
@@ -16,7 +17,7 @@ class LbActionsDropdown(discord.ui.Select):
 
 class LbActionModal(discord.ui.Modal):
     def __init__(self):
-        super().__init__(title='Submit a leaderboard request...')
+        super().__init__(title='Make changes to the leaderboard')
     actionType = discord.ui.Label(text='Action', component=LbActionsDropdown())
     name = discord.ui.TextInput(label='User', placeholder='Toiebe')
     rank = discord.ui.TextInput(label='Rank', placeholder='100', required=False)
@@ -53,8 +54,10 @@ class LbActions(commands.Cog):
 
     @app_commands.command(name='lbactions', description='Make changes to the leaderboard')
     async def lbActions(self, interaction:discord.Interaction):
-        if interaction.user.id != 884134020693229639:
-            return await interaction.response.send_message('You are not th3_olegsey', ephemeral=True)
+        user = User(interaction.user.id)
+        if not user.get_lbActionsPerm():
+            embed = discord.Embed(title='Access denied', description='You don\'t has permissions to execute this command', color=0xFF0000)
+            return await interaction.response.send_message(embed=embed, ephemeral=True)
         await interaction.response.send_modal(LbActionModal())
 
 async def setup(bot:commands.Bot):

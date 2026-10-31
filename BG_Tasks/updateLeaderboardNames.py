@@ -3,6 +3,7 @@ import aiohttp
 import pandas as pd
 
 from discord.ext import tasks,commands
+path = 'Data/Guild/Players/'
 url = 'https://users.roblox.com/v1/users'
 
 class UpdateLeaderboardNames(commands.Cog):
@@ -14,8 +15,8 @@ class UpdateLeaderboardNames(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def updateLeaderboardNames(self):
-        names_csv = pd.read_csv('Data/Guild/Leaderboard/name.csv')
-        displays_csv = pd.read_csv('Data/Guild/Leaderboard/display.csv')
+        names_csv = pd.read_csv(f'{path}name.csv')
+        displays_csv = pd.read_csv(f'{path}display.csv')
         payload = {
             'userIds': names_csv['uid'].to_list()
         }
@@ -31,7 +32,7 @@ class UpdateLeaderboardNames(commands.Cog):
                             if ser['uid'] == k['id']:
                                 ser['value'] = k['name']
                                 names_csv.iloc[i] = ser
-                    names_csv.to_csv('Data/Guild/Leaderboard/name.csv', index=False, header=True)
+                    names_csv.to_csv(f'{path}name.csv', index=False, header=True)
 
                     for i in range(len(displays_csv)):
                         ser = displays_csv.iloc[i]
@@ -39,7 +40,7 @@ class UpdateLeaderboardNames(commands.Cog):
                             if ser['uid'] == k['id']:
                                 ser['value'] = k['displayName']
                                 displays_csv.iloc[i] = ser
-                    displays_csv.to_csv('Data/Guild/Leaderboard/display.csv', index=False, header=True)
+                    displays_csv.to_csv(f'{path}display.csv', index=False, header=True)
                                 
 async def setup(bot:commands.Bot):
     await bot.add_cog(UpdateLeaderboardNames(bot))
