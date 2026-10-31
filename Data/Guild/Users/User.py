@@ -33,7 +33,6 @@ class User():
 
     def set_reputation(self, value:int) -> None:
         set_stat(self.id, 'reputation', value)
-<<<<<<< HEAD:Data/Guild/Users/user.py
 
     def get_lbActionsPerm(self) -> bool:
         stat = int(get_stat(self.id, 'lbActionsPerm'))
@@ -43,6 +42,3 @@ class User():
     def set_lbActionsPerm(self, value:bool):
         has_permission = 1 if value else 0
         set_stat(self.id, 'lbActionsPerm', has_permission)
-        
-=======
->>>>>>> d0f88ef9a2ad137d62e29f1e93b00fe7c29ca31c:Data/Guild/Users/User.py
