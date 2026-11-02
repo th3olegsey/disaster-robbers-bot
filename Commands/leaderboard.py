@@ -30,7 +30,7 @@ def buildLeaderboard(page:int , is_display: bool, sort_by: str) -> str:
     name_or_display = 'Display' if is_display else 'Name'
     main_columns = f' {'№':^3} | {name_or_display:^20} | Lvl | Cash '
 
-    csvNames = pd.read_csv('Data/Guild/Leaderboard/name.csv')
+    csvNames = pd.read_csv('Data/Guild/Players/name.csv')
     uids = csvNames['uid'].to_list()
     members = []
     for uid in uids:
