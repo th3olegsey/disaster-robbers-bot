@@ -1,4 +1,5 @@
 import discord
+import asyncio
 
 from discord.ext import commands
 from discord import app_commands
@@ -6,6 +7,7 @@ from os import getenv
 from dotenv import load_dotenv
 load_dotenv()
 token = getenv('token')
+serverToken = getenv('token2')
 cmds = ['calc', 'notifyStarfall', 'statCmds', 'scary', 'leaderboard', 'lbActions', 'about']
 bg_tasks = ['getDRservers', 'updateLeaderboardNames']
 events = ['logEveryCommand']
@@ -27,6 +29,29 @@ class Bot(commands.Bot):
         for event in events:
             await self.load_extension(f'Events.{event}')
 
+        bot_cmds = await self.tree.sync()
+        for command in bot_cmds:
+            self.cmds.append(command)
+        print('cmds have been synced')
+
+    async def on_ready(self):
+        print('App is ready')
+
+class ServerBot(commands.Bot):
+    def __init__(self):
+        intents = discord.Intents.default()
+        intents.guilds = True
+        intents.members = True
+        intents.message_content = True
+        super().__init__(command_prefix='!', intents=intents)
+        self.cmds = []
+    
+    async def setup_hook(self):
+        for cmd in cmds:
+            await self.load_extension(f'Commands.{cmd}')
+        for event in events:
+            await self.load_extension(f'Events.{event}')
+
         guild = discord.Object(1494094131692048578)
         self.tree.copy_global_to(guild=guild)
         self.tree.clear_commands(guild=None)
@@ -36,9 +61,14 @@ class Bot(commands.Bot):
         print('cmds have been synced')
 
     async def on_ready(self):
-        print('im ready')
-if not token:
-    raise SystemExit('Set discord token')
-bot = Bot()
+        print('Server bot is ready')
 
-bot.run(token)
+bot = Bot()
+serverbot = ServerBot()
+
+async def runBots():
+    await asyncio.gather(
+        bot.start(token),
+        serverbot.start(serverToken)
+    )
+asyncio.run(runBots())
