@@ -53,9 +53,9 @@ class ServerBot(commands.Bot):
             await self.load_extension(f'Events.{event}')
 
         guild = discord.Object(1494094131692048578)
-        self.tree.copy_global_to(guild=guild)
-        self.tree.clear_commands(guild=None)
-        bot_cmds = await self.tree.sync(guild=guild)
+        #self.tree.copy_global_to(guild=guild)
+        #self.tree.clear_commands(guild=None)
+        bot_cmds = await self.tree.sync()
         for command in bot_cmds:
             self.cmds.append(command)
         print('cmds have been synced')
